@@ -1,0 +1,7 @@
+[package]
+name = "convex_hull"
+version = "0.1.0"
+authors = ["Titus Tienaah <titus.intdxdt@gmail.com>"]
+
+[dependencies]
+float_eq = { git = "https://github.com/intdxdt/float_eq", branch = "master" }
