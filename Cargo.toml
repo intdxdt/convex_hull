@@ -5,3 +5,4 @@ authors = ["Titus Tienaah <titus.intdxdt@gmail.com>"]
 
 [dependencies]
 float_eq = { git = "https://github.com/intdxdt/float_eq", branch = "master" }
+robust_orientation = { git = "https://github.com/intdxdt/robust_orientation", branch = "master" }

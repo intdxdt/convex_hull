@@ -1,7 +1,9 @@
 extern crate float_eq;
+extern crate robust_orientation;
 
 use std::cmp::Ordering;
 use float_eq::feq;
+use robust_orientation::orientation_2d;
 
 //Computes the convex hull of a set of 2D points.
 //Input   : an sequence of (x, y) pairs representing the input points.
@@ -9,59 +11,69 @@ use float_eq::feq;
 //  starting from the vertex with the lexicographically smallest coordinates.
 //Ref: Andrew's monotone chain algorithm. O(n log n) complexity.
 fn convex_hull_2d(coordinates: &[Vec<f64>]) -> Vec<Vec<f64>> {
-	let upper   = make([][]float64, 0)
-	let lower   = make([][]float64, 0)
-	let coords  = make([][]float64, len(coordinates))
+    let mut upper: Vec<Vec<f64>> = Vec::new();
+    let mut lower: Vec<Vec<f64>> = Vec::new();
+    let mut coords: Vec<Vec<f64>> = Vec::with_capacity(coordinates.len());
+    coords.extend(coordinates.iter().cloned());
 
-	copy(coords, coordinates)
-
-	n = len(coords)
-	if n < 3 {
-	    if n == 2 &&
-		    coords[0][0] == coords[1][0] &&
-		    coords[0][1] == coords[1][1] {
-	      return [][]float64{coords[0]}
-	    }
-	    return coords
+    let n = coords.len();
+    if n < 3 {
+        if n == 2 &&
+            coords[0][0] == coords[1][0] &&
+            coords[0][1] == coords[1][1] {
+            return vec!(coords[0].clone());
+        }
+        return coords;
     }
 
-	sort.Sort(coordSlice(coords))
+    sort_2d(&mut coords);
 
-	for _, pt = range coords {
-		// should go clockwise
-		// if counter or on line pop
-		for len(upper) > 1 && Orientation2D(upper[len(upper)-2], upper[len(upper)-1], pt) <= 0 {
-			pop(&upper)
-		}
+    for pt in coords.iter() {
+        // should go clockwise
+        // if counter or on line pop
+        while upper.len() > 1 &&
+            orientation_2d(
+                &upper[upper.len() - 2],
+                &upper[upper.len() - 1],
+                &pt) <= 0f64 {
+            upper.pop();
+        }
 
-		// should go counter clock
-		// if clockwise or on line pop
-		for len(lower) > 1 && Orientation2D(lower[len(lower)-2], lower[len(lower)-1], pt) >= 0 {
-			pop(&lower)
-		}
+        // should go counter clock
+        // if clockwise or on line pop
+        while lower.len() > 1 &&
+            orientation_2d(
+                &lower[lower.len() - 2],
+                &lower[lower.len() - 1],
+                &pt) >= 0f64 {
+            lower.pop();
+        }
 
-		push(&upper, pt)
-		push(&lower, pt)
-	}
+        upper.push(pt.clone());
+        lower.push(pt.clone());
+    }
 
-	// or upper = [o for o in upper]
-	reverse(&upper)
+    // or upper = [o for o in upper]
+    upper.reverse();
 
-	//end points are repeated top hull & down hull
-	// return lower[:-1] + upper[:-1], lower, or upper
-	if len(lower) > 0 {
-		lower = lower[:len(lower)-1]
-	}
-	if len(upper) > 0 {
-		upper = upper[:len(upper)-1]
-	}
+    //end points are repeated top hull & down hull
+    // return lower[:-1] + upper[:-1], lower, or upper
+    if lower.len() > 0 {
+        lower = lower[0..lower.len() - 1].to_vec()
+    }
+    if upper.len() > 0 {
+        upper = upper[0..upper.len() - 1].to_vec()
+    }
 
-	return concat(lower, upper)
+    for pt in upper.iter() {
+        lower.push(pt.clone())
+    }
+    return upper;
 }
 
 
-fn sort_2d(ar: &mut[Vec<f64>]){
-    ar.sort_by(|a, b| lexsort_2d(a, b));
+fn sort_2d(coords: &mut [Vec<f64>]) {
+    coords.sort_by(|a, b| lexsort_2d(a, b));
 }
 
 //sort 2d coordinates lexicographically
@@ -80,15 +92,14 @@ fn lexsort_2d(a: &[f64], b: &[f64]) -> std::cmp::Ordering {
 }
 
 
-
 #[cfg(test)]
 mod test_convexes {
-    use super::sort_2d;
+    use super::convex_hull_2d;
 
     #[test]
     fn test_convex_hull() {
-        let mut xy = vec![vec!(4., 6.), vec!(8., 6.), vec!(2., 7.), vec!(3., 5.)];
-        sort_2d(&mut xy);
-        println!("{:?}",  xy);
+        let xy = vec!(vec!(0., 0.), vec!(1., 1.), vec!(1., 0.), vec!(0.5, 0.5), vec!(0.7, 0.1));
+        let hull = convex_hull_2d(&xy);
+        println!("{:?}", hull);
     }
 }
